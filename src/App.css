@@ -61,7 +61,28 @@
 }
 
 .min-height-500 {
-  min-height: 850px;
+  min-height: 80vh;
+}
+
+.horizontal-scroll {
+  display: flex;
+  overflow-x: auto;
+}
+
+.kanban-column {
+  margin: 0px 8px 8px 8px;
+  border: 1px solid lightgrey;
+  border-radius: 2px;
+  min-width: 250px;
+  max-width: 250px;
+  background-color: lightgrey;
+
+  vertical-align: top;
+  min-height: 77vh;
+  max-height: 77vh;
+
+  display: flex;
+  flex-direction: column;
 }
 
 @keyframes App-logo-spin {

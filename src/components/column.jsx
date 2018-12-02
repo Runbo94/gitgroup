@@ -1,7 +1,10 @@
 import React, { Component } from "react";
-import Task from "./task";
+import PerfectScrollbar from "react-perfect-scrollbar";
 import styled from "styled-components";
 import { Droppable } from "react-beautiful-dnd";
+import Task from "./task";
+
+import "react-perfect-scrollbar/dist/css/styles.css";
 
 const Container = styled.div`
   margin: 0px 8px 8px 8px;
@@ -31,7 +34,7 @@ class Column extends Component {
   state = {};
   render() {
     return (
-      <Container>
+      <PerfectScrollbar className="kanban-column">
         <Title>{this.props.column.title}</Title>
         <Droppable droppableId={this.props.column.id}>
           {provided => (
@@ -48,7 +51,7 @@ class Column extends Component {
             </TaskList>
           )}
         </Droppable>
-      </Container>
+      </PerfectScrollbar>
     );
   }
 }

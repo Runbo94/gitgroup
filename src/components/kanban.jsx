@@ -75,27 +75,28 @@ class Kanban extends Component {
     }
   };
 
-  // componentWillReceiveProps = async nextProps => {
-  //   /**get all the issues to the back log */
-  //   await this.getAllIssuesAndSetBackLog(nextProps);
+  componentDidMount = async () => {
+    await this.getAllIssuesAndSetBackLog(this.props);
 
-  //   /**get kanban information */
-  //   await this.getKanbanAllColsAndSet(nextProps);
-  // };
+    /**get kanban information */
+    await this.getKanbanAllColsAndSet(this.props);
+  };
 
   componentWillReceiveProps = async nextProps => {
-    console.log("kanban update");
-    if (
-      nextProps.user !== this.props.user ||
-      nextProps.kanbanId !== this.props.kanbanId ||
-      nextProps.projectId !== this.props.projectId
-    ) {
-      /**get all the issues to the back log */
-      await this.getAllIssuesAndSetBackLog(nextProps);
+    // console.log("kanban update");
+    // if (
 
-      /**get kanban information */
-      await this.getKanbanAllColsAndSet(nextProps);
-    }
+    //   nextProps.user !== this.props.user ||
+    //   nextProps.kanbanId !== this.props.kanbanId ||
+    //   nextProps.projectId !== this.props.projectId
+    // ) {
+    // console.log("1");
+    /**get all the issues to the back log */
+    await this.getAllIssuesAndSetBackLog(nextProps);
+
+    /**get kanban information */
+    await this.getKanbanAllColsAndSet(nextProps);
+    // }
   };
 
   /**card drag end handler */

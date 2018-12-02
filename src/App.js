@@ -2,6 +2,7 @@ import React, { Component } from "react";
 import { Route, Redirect, Switch, withRouter } from "react-router-dom";
 import { ToastContainer } from "react-toastify";
 import DatePicker from "react-datepicker";
+import PerfectScrollbar from "react-perfect-scrollbar";
 import Navbar from "./components/navbar";
 import Footer from "./components/footer";
 import NotFound from "./components/notFound";
@@ -19,6 +20,7 @@ import { KanbanService } from "./services/kanbanService";
 
 import "./App.css";
 import "react-datepicker/dist/react-datepicker.css";
+import "react-perfect-scrollbar/dist/css/styles.css";
 
 class App extends Component {
   state = {
@@ -34,6 +36,7 @@ class App extends Component {
     sideProjectList: false,
     projectId: "",
     kanbanId: "", // if the kanban page is mounted, this is the id of the kanban
+    project: {},
     kanban: {},
     newProjectFormData: {
       name: "",
@@ -49,13 +52,33 @@ class App extends Component {
     //~ server
   };
 
-  setProjectId = user => {
-    // set project ID
-    user = { ...user };
-    const projects = [...user.projects];
-    if (projects && projects.length > 0) {
-      const projectId = projects[0].id;
-      this.setState({ projectId: projectId });
+  initProjectAndKanban = async user => {
+    if (user) {
+      // get all the projects of the user
+      const projects = user.projects.slice(0);
+      // get the first project
+      let theFirstProjectId;
+      let theFirstKanbanId;
+      let kanban = {};
+      let project = {};
+      if (projects && projects.length > 0) {
+        theFirstProjectId = projects[0].id;
+        project = projects[0];
+        // get all kanbans of the first project
+        const kanbans = (await new KanbanService().getKanbansOfProject(
+          theFirstProjectId
+        )).data;
+        if (kanbans && kanbans.length > 0) {
+          kanban = kanbans[0];
+          theFirstKanbanId = kanbans[0]._id;
+        }
+      }
+
+      this.setState({ projectId: theFirstProjectId });
+      this.setState({ kanbanId: theFirstKanbanId });
+      this.setState({ kanban });
+      this.setState({ project });
+      this.setState({ user });
     }
   };
 
@@ -69,24 +92,7 @@ class App extends Component {
 
     // get the user data from the local storage first
     let user = JSON.parse(localStorage.getItem("user"));
-    if (user) {
-      // get all the projects of the user
-      const projects = user.projects.slice(0);
-      // get the first project
-      let theFirstProjectId;
-      if (projects && projects.length > 0) theFirstProjectId = projects[0].id;
-
-      // get all kanbans of the first project
-      const kanbans = (await new KanbanService().getKanbansOfProject(
-        theFirstProjectId
-      )).data;
-      let theFirstKanbanId;
-      if (kanbans && kanbans.length > 0) theFirstKanbanId = kanbans[0]._id;
-
-      this.setState({ projectId: theFirstProjectId });
-      this.setState({ kanbanId: theFirstKanbanId });
-      this.setState({ user });
-    }
+    await this.initProjectAndKanban(user);
 
     // get the user data from the remote, and update the user data
     const userService = new UserService();
@@ -97,23 +103,7 @@ class App extends Component {
     userService.getUser().then(async user => {
       localStorage.setItem("user", JSON.stringify(user));
       // get all the projects of the user
-      const newProjects = user.projects.slice(0);
-      // get the first project
-      let newFirstProjectId;
-      if (newProjects && newProjects.length > 0)
-        newFirstProjectId = newProjects[0].id;
-
-      // get all kanbans of the first project
-      const newKanbans = (await new KanbanService().getKanbansOfProject(
-        newFirstProjectId
-      )).data;
-      let newFirstKanbanId;
-      if (newKanbans && newKanbans.length > 0)
-        newFirstKanbanId = newKanbans[0]._id;
-
-      this.setState({ projectId: newFirstProjectId });
-      this.setState({ kanbanId: newFirstKanbanId });
-      this.setState({ user });
+      await this.initProjectAndKanban(user);
     });
 
     // set the kanban
@@ -446,7 +436,11 @@ class App extends Component {
           projectId={projectId}
           kanbanId={kanbanId}
         />
-        <div className="section is-paddingless m-t-8 min-height-500">
+        <PerfectScrollbar
+          className="section is-paddingless m-t-8 min-height-500"
+          // option={{ suppressScrollY: true, useBothWheelAxes: true }}
+        >
+          {/* <div className="section is-paddingless m-t-8 min-height-500 "> */}
           <div className="container columns is-gapless">
             {sideProjectList && (
               <div className="column is-2">
@@ -464,7 +458,7 @@ class App extends Component {
                 <SideTabs openSideProjectList={this.openSideProjectList} />
               </div>
             )}
-            <div className="column auto">
+            <div className="column">
               <Switch>
                 <Route
                   exact
@@ -495,7 +489,8 @@ class App extends Component {
               </Switch>
             </div>
           </div>
-        </div>
+          {/* </div> */}
+        </PerfectScrollbar>
         {this.newProjectModal()}
         {this.newKanbanModal()}
         <Footer />
