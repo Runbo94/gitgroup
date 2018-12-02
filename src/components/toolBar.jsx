@@ -1,34 +1,72 @@
 import React, { Component } from "react";
+import Moment from "moment";
 import { KanbanService } from "./../services/kanbanService";
+import { ProjectService } from "./../services/projectService";
 
 class ToolBar extends Component {
   state = {
-    kanbans: []
+    kanbans: [],
+    selectedKanban: {}
   };
 
-  componentDidMount = async () => {
+  setSelectedKanban = kanbanId => {
+    const kanbans = [...this.state.kanbans];
+    kanbans.map(kanban => {
+      if (kanban._id === kanbanId) {
+        const selectedKanban = { ...this.state.selectedKanban };
+        selectedKanban.due = kanban.due;
+        this.setState({ selectedKanban });
+      }
+    });
+  };
+
+  /**current page: Overview,  */
+  currentPage = () => {
     if (window.location.pathname.match(/^\/kanban/)) {
-      const kanbansData = await new KanbanService().getKanbansOfProject(
-        window.location.pathname.split("/").pop()
-      );
-      const kanbans = kanbansData.data;
-      if (kanbans && kanbans.length > 0)
-        this.props.handleKanbanIdChanged(kanbans[0]._id);
-      this.setState({ kanbans });
+      return "kanban";
+    } else if (window.location.pathname === "/") {
+      return "overview";
+    }
+  };
+
+  currentProject = () => {
+    const projectId = this.props.projectId;
+  };
+
+  componentDidMount = async () => {};
+
+  componentWillReceiveProps = async nextProps => {
+    console.log("tool bar update");
+    if (
+      window.location.pathname.match(/^\/kanban/) &&
+      nextProps.projectId !== "" &&
+      nextProps.kanbanId &&
+      nextProps.kanbanId !== ""
+    ) {
+      const theKanbans = (await new KanbanService().getKanbansOfProject(
+        nextProps.projectId
+      )).data;
+      this.setState({ kanbans: theKanbans });
+      this.setSelectedKanban(nextProps.kanbanId);
     }
   };
 
   handleKanbanIdChanged = e => {
-    console.log(e.target.value);
     this.props.handleKanbanIdChanged(e.target.value);
+    this.setSelectedKanban(e.target.value);
   };
 
   kanbanToolBar = () => {
-    const { kanbans } = this.state;
+    const { kanbans, selectedKanban } = this.state;
     return (
       <React.Fragment>
         <div className="column is-paddingless has-text-right">
           <div className="has-text-right">
+            <span className="is-size-7 has-text-grey-light">
+              Due Day:&nbsp;
+              {Moment(selectedKanban.due).format("dddd, MMMM Do YYYY, h:mm a")}
+              &nbsp;&nbsp;
+            </span>
             <a
               className="button is-light is-small is-marginless"
               onClick={this.props.openNewKanbanModal}
@@ -66,18 +104,13 @@ class ToolBar extends Component {
             <nav className="breadcrumb is-small" aria-label="breadcrumbs">
               <ul>
                 <li>
-                  <a href="#">Bulma</a>
+                  <a>GitGroup</a>
                 </li>
                 <li>
-                  <a href="#">Documentation</a>
-                </li>
-                <li>
-                  <a href="#">Components</a>
+                  <a>Documentation</a>
                 </li>
                 <li className="is-active">
-                  <a href="#" aria-current="page">
-                    Breadcrumb
-                  </a>
+                  <a>{this.currentPage()}</a>
                 </li>
               </ul>
             </nav>
@@ -87,7 +120,6 @@ class ToolBar extends Component {
 
           {window.location.pathname.match(/^\/kanban/) && this.kanbanToolBar()}
         </div>
-        <div className="is-divider" />
       </React.Fragment>
     );
   }

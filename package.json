@@ -9,6 +9,7 @@
     "joi-browser": "^13.4.0",
     "joi-password-complexity": "^2.0.1",
     "lodash": "^4.17.11",
+    "moment": "^2.22.2",
     "query-string": "^6.1.0",
     "react": "^16.4.2",
     "react-beautiful-dnd": "^10.0.2",

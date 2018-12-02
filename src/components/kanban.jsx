@@ -14,47 +14,40 @@ const Container = styled.div`
 class Kanban extends Component {
   state = {
     backLogCol: { id: "backlog", title: "BackLog", cards: [] }, // BackLog column object, include id and title
-    backLogIssues: [], // all the issues got from GitHub
+    // backLogIssues: [], // all the issues got from GitHub
     kanbanId: null, // current kanban ID
     kanban: {}, // format: {_id, name, state, due, projectId, columns:{_id, name, kanbanId}}
     kanbanCols: [] // get from kanban, change name to title in order to use react-beautiful-dnd
   };
 
+  /**get all the issues from GitHub and set it to the backLogCol of the STATE*/
   getAllIssuesAndSetBackLog = async props => {
     const issueService = new IssueService();
-    const projectId = props.match.params.project_id;
+    // const projectId = props.match.params.project_id;
+    const projectId = props.projectId;
     if (props.user) {
       const username = props.user.name;
-      let issues = await issueService.getAllIssues(username, projectId);
-      for (let issue of issues.data) {
+      let issues = (await issueService.getAllIssues(username, projectId)).data;
+      for (let issue of issues) {
         issue.id = issue.issueId;
         issue.type = "issueCard"; //
       }
+
       let backLogCol = { ...this.state.backLogCol };
-      for (const issue of issues.data) {
-        if (
-          backLogCol.cards.filter(current => current.id === issue.id).length ===
-          0
-        ) {
-          backLogCol.cards.push(issue);
-        }
+      backLogCol.cards = [];
+      for (const issue of issues) {
+        backLogCol.cards.push(issue);
       }
       this.setState({ backLogCol });
     }
   };
 
-  componentDidMount = async () => {};
-
-  componentWillReceiveProps = async nextProps => {
+  /**get kanban and update backlog, saved these to STATE */
+  getKanbanAllColsAndSet = async props => {
     const kanbanService = new KanbanService();
-    /**get all the issues to the back log */
-    await this.getAllIssuesAndSetBackLog(nextProps);
-
-    /**get kanban information */
-    if (nextProps.kanbanId) {
-      this.setState({ kanbanId: nextProps.kanbanId });
-      const kanban = (await kanbanService.getKanbanById(nextProps.kanbanId))
-        .data;
+    if (props.kanbanId) {
+      this.setState({ kanbanId: props.kanbanId });
+      const kanban = (await kanbanService.getKanbanById(props.kanbanId)).data;
       this.setState({ kanban }); // get and set the kanban in state
 
       let kanbanCols = []; // decorated columns array
@@ -71,7 +64,7 @@ class Kanban extends Component {
       }
       this.setState({ kanbanCols });
 
-      // update kanban
+      // update backlog
       let { backLogCol } = { ...this.state };
       if (kanban && kanban.includeIssueIds) {
         backLogCol.cards = backLogCol.cards.filter(
@@ -79,6 +72,29 @@ class Kanban extends Component {
         );
         this.setState({ backLogCol });
       }
+    }
+  };
+
+  // componentWillReceiveProps = async nextProps => {
+  //   /**get all the issues to the back log */
+  //   await this.getAllIssuesAndSetBackLog(nextProps);
+
+  //   /**get kanban information */
+  //   await this.getKanbanAllColsAndSet(nextProps);
+  // };
+
+  componentWillReceiveProps = async nextProps => {
+    console.log("kanban update");
+    if (
+      nextProps.user !== this.props.user ||
+      nextProps.kanbanId !== this.props.kanbanId ||
+      nextProps.projectId !== this.props.projectId
+    ) {
+      /**get all the issues to the back log */
+      await this.getAllIssuesAndSetBackLog(nextProps);
+
+      /**get kanban information */
+      await this.getKanbanAllColsAndSet(nextProps);
     }
   };
 
@@ -130,6 +146,7 @@ class Kanban extends Component {
             owner: card.owner,
             repos: card.repos,
             state: card.state,
+            number: card.number,
             note: ""
           })).data;
           card.id = card._id; // fix it!!!
@@ -142,33 +159,36 @@ class Kanban extends Component {
         this.setState({ kanbanCols });
       }
     }
-    // update the backlog
-    const newKanban = (await kanbanService.getKanbanById(kanbanId)).data;
-    this.setState({ kanban: newKanban }); // get and set the kanban in state
-    kanban = newKanban;
-
-    let newKanbanCols = []; // decorated columns array
-    for (const column of kanban.columns) {
-      const colName = column.name;
-      const colId = column._id;
-      const cards = column.cards;
-      for (let card of cards) {
-        // change the _id to id, fix it!!!
-        card.id = card._id;
-      }
-      const kanbanCol = { id: colId, title: colName, cards: cards };
-      newKanbanCols.push(kanbanCol);
-    }
-    this.setState({ kanbanCols: newKanbanCols });
 
     await this.getAllIssuesAndSetBackLog(this.props);
-    backLogCol = { ...this.state.backLogCol };
-    if (kanban && kanban.includeIssueIds) {
-      backLogCol.cards = backLogCol.cards.filter(
-        card => !kanban.includeIssueIds.includes(card.issueId)
-      );
-      this.setState({ backLogCol });
-    }
+    await this.getKanbanAllColsAndSet(this.props);
+    // update the backlog
+    // const newKanban = (await kanbanService.getKanbanById(kanbanId)).data;
+    // this.setState({ kanban: newKanban }); // get and set the kanban in state
+    // kanban = newKanban;
+
+    // let newKanbanCols = []; // decorated columns array
+    // for (const column of kanban.columns) {
+    //   const colName = column.name;
+    //   const colId = column._id;
+    //   const cards = column.cards;
+    //   for (let card of cards) {
+    //     // change the _id to id, fix it!!!
+    //     card.id = card._id;
+    //   }
+    //   const kanbanCol = { id: colId, title: colName, cards: cards };
+    //   newKanbanCols.push(kanbanCol);
+    // }
+    // this.setState({ kanbanCols: newKanbanCols });
+
+    // await this.getAllIssuesAndSetBackLog(this.props);
+    // backLogCol = { ...this.state.backLogCol };
+    // if (kanban && kanban.includeIssueIds) {
+    //   backLogCol.cards = backLogCol.cards.filter(
+    //     card => !kanban.includeIssueIds.includes(card.issueId)
+    //   );
+    //   this.setState({ backLogCol });
+    // }
   };
 
   render() {

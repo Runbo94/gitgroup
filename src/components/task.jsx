@@ -28,11 +28,11 @@ class Task extends Component {
             ref={provided.innerRef}
             innerRef={provided.innerRef}
           >
-            <header class="card-header">
-              <p class="card-header-title">{this.props.task.title}</p>
+            <header className="card-header">
+              <p className="card-header-title">{this.props.task.title}</p>
             </header>
-            <div class="card-content">
-              <div class="content">
+            <div className="card-content">
+              <div className="content">
                 <ReactMarkdown source={this.props.task.body} />
                 {/* <time datetime="2016-1-1">11:09 PM - 1 Jan 2016</time> */}
               </div>

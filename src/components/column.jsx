@@ -4,10 +4,11 @@ import styled from "styled-components";
 import { Droppable } from "react-beautiful-dnd";
 
 const Container = styled.div`
-  margin: 8px;
+  margin: 0px 8px 8px 8px;
   border: 1px solid lightgrey;
   border-radius: 2px;
-  width: 250px;
+  min-width: 250px;
+  max-width: 250px;
   background-color: lightgrey;
 
   vertical-align: top;

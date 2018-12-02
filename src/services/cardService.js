@@ -19,7 +19,6 @@ export class CardService {
    * @param {*} cardData - format: {issueId, title, body, owner, repos, state, note}
    */
   async createNewCard(kanbanId, columnId, cardData) {
-    console.log("create");
     return await this.cardHttp.post(
       `/add_new_card/${kanbanId}/${columnId}`,
       cardData
@@ -27,7 +26,6 @@ export class CardService {
   }
 
   async deleteTheCard(kanbanId, columnId, cardId) {
-    console.log("delete");
     return await this.cardHttp.delete(`/${kanbanId}/${columnId}/${cardId}`);
   }
 }

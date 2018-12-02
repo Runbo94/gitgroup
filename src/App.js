@@ -11,6 +11,8 @@ import Overview from "./components/overview";
 import Kanban from "./components/kanban";
 import Tabs from "./components/tabs";
 import ToolBar from "./components/toolBar";
+import ProjectList from "./components/projectList";
+import SideTabs from "./components/sideTabs";
 import { UserService } from "./services/userService";
 import { ProjectService } from "./services/projectService";
 import { KanbanService } from "./services/kanbanService";
@@ -29,7 +31,10 @@ class App extends Component {
     // **note: 1. the owner_id should be named 'owner_name'
     newProjectModal: false, // used to control the open and close of the modal
     newKanbanModal: false, // used to control the open and close of the modal
-    kanbanId: null, // if the kanban page is mounted, this is the id of the kanban
+    sideProjectList: false,
+    projectId: "",
+    kanbanId: "", // if the kanban page is mounted, this is the id of the kanban
+    kanban: {},
     newProjectFormData: {
       name: "",
       description: "",
@@ -44,7 +49,17 @@ class App extends Component {
     //~ server
   };
 
-  componentDidMount() {
+  setProjectId = user => {
+    // set project ID
+    user = { ...user };
+    const projects = [...user.projects];
+    if (projects && projects.length > 0) {
+      const projectId = projects[0].id;
+      this.setState({ projectId: projectId });
+    }
+  };
+
+  componentDidMount = async () => {
     this.setState({ user: null });
     const search = this.props.location.search; // when github give us authorization ~
     const params = new URLSearchParams(search); // ~ there will be a query parameter in this page ~
@@ -53,16 +68,56 @@ class App extends Component {
     // store the access token in the local storage
 
     // get the user data from the local storage first
-    const user = JSON.parse(localStorage.getItem("user"));
-    if (user) this.setState({ user });
+    let user = JSON.parse(localStorage.getItem("user"));
+    if (user) {
+      // get all the projects of the user
+      const projects = user.projects.slice(0);
+      // get the first project
+      let theFirstProjectId;
+      if (projects && projects.length > 0) theFirstProjectId = projects[0].id;
+
+      // get all kanbans of the first project
+      const kanbans = (await new KanbanService().getKanbansOfProject(
+        theFirstProjectId
+      )).data;
+      let theFirstKanbanId;
+      if (kanbans && kanbans.length > 0) theFirstKanbanId = kanbans[0]._id;
+
+      this.setState({ projectId: theFirstProjectId });
+      this.setState({ kanbanId: theFirstKanbanId });
+      this.setState({ user });
+    }
 
     // get the user data from the remote, and update the user data
     const userService = new UserService();
-    userService.getUser().then(user => {
+    // user = await userService.getUser();
+    // localStorage.setItem("user", JSON.stringify(user));
+    // this.setState({ user });
+    // this.setProjectId(user);
+    userService.getUser().then(async user => {
       localStorage.setItem("user", JSON.stringify(user));
+      // get all the projects of the user
+      const newProjects = user.projects.slice(0);
+      // get the first project
+      let newFirstProjectId;
+      if (newProjects && newProjects.length > 0)
+        newFirstProjectId = newProjects[0].id;
+
+      // get all kanbans of the first project
+      const newKanbans = (await new KanbanService().getKanbansOfProject(
+        newFirstProjectId
+      )).data;
+      let newFirstKanbanId;
+      if (newKanbans && newKanbans.length > 0)
+        newFirstKanbanId = newKanbans[0]._id;
+
+      this.setState({ projectId: newFirstProjectId });
+      this.setState({ kanbanId: newFirstKanbanId });
       this.setState({ user });
     });
-  }
+
+    // set the kanban
+  };
 
   //--------------------------------------------------------------------------
   //  Create new project
@@ -342,6 +397,21 @@ class App extends Component {
   };
 
   //---------------------------------------------------------------------------
+  // Side project list
+  //---------------------------------------------------------------------------
+  closeSideProjectList = () => {
+    this.setState({ sideProjectList: false });
+  };
+
+  openSideProjectList = () => {
+    this.setState({ sideProjectList: true });
+  };
+
+  changeProjectId = projectId => {
+    this.setState({ projectId });
+  };
+
+  //---------------------------------------------------------------------------
   // Other handlers
   //---------------------------------------------------------------------------
 
@@ -365,7 +435,7 @@ class App extends Component {
   //----------------------------------------------------------------------------
 
   render() {
-    const { user, kanbanId } = this.state;
+    const { user, kanbanId, sideProjectList, projectId } = { ...this.state };
     return (
       <React.Fragment>
         <Navbar user={user} />
@@ -373,32 +443,59 @@ class App extends Component {
         <ToolBar
           openNewKanbanModal={this.openNewKanbanModal}
           handleKanbanIdChanged={this.handleKanbanIdChanged}
+          projectId={projectId}
+          kanbanId={kanbanId}
         />
-        <section className="section is-fluid is-paddingless">
-          <Switch>
-            <Route
-              exact
-              path="/"
-              render={props => (
-                <Overview
-                  {...props}
+        <div className="section is-paddingless m-t-8 min-height-500">
+          <div className="container columns is-gapless">
+            {sideProjectList && (
+              <div className="column is-2">
+                <ProjectList
                   user={user}
+                  projectId={projectId}
                   openNewProjectModal={this.openNewProjectModal}
+                  closeSideProjectList={this.closeSideProjectList}
+                  changeProjectId={this.changeProjectId}
                 />
-              )}
-            />
-            <Route
-              path="/kanban/:project_id"
-              render={props => (
-                <Kanban {...props} user={user} kanbanId={kanbanId} />
-              )}
-            />
-            <Route path="/not-found" component={NotFound} />
-            <Route path="/search-page" component={SearchPage} />
-            <Route path="/profile" component={Profile} />
-            <Redirect to="/not-found" />
-          </Switch>
-        </section>
+              </div>
+            )}
+            {!sideProjectList && (
+              <div className="column is-narrow">
+                <SideTabs openSideProjectList={this.openSideProjectList} />
+              </div>
+            )}
+            <div className="column auto">
+              <Switch>
+                <Route
+                  exact
+                  path="/"
+                  render={props => (
+                    <Overview
+                      {...props}
+                      user={user}
+                      openNewProjectModal={this.openNewProjectModal}
+                    />
+                  )}
+                />
+                <Route
+                  path="/kanban"
+                  render={props => (
+                    <Kanban
+                      {...props}
+                      user={user}
+                      projectId={projectId}
+                      kanbanId={kanbanId}
+                    />
+                  )}
+                />
+                <Route path="/not-found" component={NotFound} />
+                <Route path="/search-page" component={SearchPage} />
+                <Route path="/profile" component={Profile} />
+                <Redirect to="/not-found" />
+              </Switch>
+            </div>
+          </div>
+        </div>
         {this.newProjectModal()}
         {this.newKanbanModal()}
         <Footer />

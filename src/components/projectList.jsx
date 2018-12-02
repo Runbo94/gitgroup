@@ -7,16 +7,29 @@ class ProjectList extends Component {
 
   search = () => {};
 
-  directToKanban = project => {
-    window.location = `/kanban/${project.id}`;
+  changeToTheProjectId = projectId => {
+    // window.location = `/kanban/${project.id}`;
+    this.props.changeProjectId(projectId);
   };
 
   render() {
-    const { user, openNewProjectModal } = this.props;
+    const {
+      user,
+      openNewProjectModal,
+      closeSideProjectList,
+      projectId
+    } = this.props;
     return (
       <React.Fragment>
         <nav className="panel">
-          <p className="panel-heading">projects</p>
+          <div className="panel-heading">
+            projects
+            <a
+              className="delete float-right"
+              aria-label="close"
+              onClick={closeSideProjectList}
+            />
+          </div>
           <div className="panel-block">
             <div className="control has-icons-left">
               <input
@@ -32,9 +45,13 @@ class ProjectList extends Component {
           {user &&
             user.projects.map(project => (
               <a
-                className="panel-block is-active"
+                className={
+                  project.id === projectId
+                    ? "panel-block is-active"
+                    : "panel-block"
+                }
                 key={project.id}
-                onClick={() => this.directToKanban(project)}
+                onClick={() => this.changeToTheProjectId(project.id)}
               >
                 <span className="panel-icon">
                   <i className="fas fa-project-diagram" aria-hidden="true" />
