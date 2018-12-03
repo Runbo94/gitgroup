@@ -85,6 +85,25 @@
   flex-direction: column;
 }
 
+.overview-cards-column {
+  margin: 0px 8px 8px 8px;
+  border: 1px solid lightgrey;
+  border-radius: 2px;
+  background-color: lightgrey;
+
+  vertical-align: top;
+  min-height: 77vh;
+  max-height: 77vh;
+
+  display: flex;
+  flex-direction: column;
+  /* flex-direction: column; */
+}
+
+.center {
+  margin: auto;
+}
+
 @keyframes App-logo-spin {
   from {
     transform: rotate(0deg);

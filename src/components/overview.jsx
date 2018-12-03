@@ -8,10 +8,13 @@ class Overview extends Component {
     return (
       <div className="columns is-paddingless">
         <div className="column is-8">
-          <StatusOverview />
+          <StatusOverview
+            kanbans={this.props.kanbans}
+            projectId={this.props.projectId}
+          />
         </div>
         <div className="column is-4">
-          <CardsOverview />
+          <CardsOverview kanbans={this.props.kanbans} />
         </div>
       </div>
     );

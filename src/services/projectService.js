@@ -21,4 +21,10 @@ export class ProjectService {
       repositories: projectData.repositories
     });
   }
+
+  async getProjectOverview(projectId) {
+    const overview = (await this.projectHttp.get("/overview/" + projectId))
+      .data;
+    return overview;
+  }
 }

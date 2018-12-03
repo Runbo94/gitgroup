@@ -38,6 +38,7 @@ class App extends Component {
     kanbanId: "", // if the kanban page is mounted, this is the id of the kanban
     project: {},
     kanban: {},
+    kanbans: [],
     newProjectFormData: {
       name: "",
       description: "",
@@ -61,11 +62,12 @@ class App extends Component {
       let theFirstKanbanId;
       let kanban = {};
       let project = {};
+      let kanbans = [];
       if (projects && projects.length > 0) {
         theFirstProjectId = projects[0].id;
         project = projects[0];
         // get all kanbans of the first project
-        const kanbans = (await new KanbanService().getKanbansOfProject(
+        kanbans = (await new KanbanService().getKanbansOfProject(
           theFirstProjectId
         )).data;
         if (kanbans && kanbans.length > 0) {
@@ -77,6 +79,7 @@ class App extends Component {
       this.setState({ projectId: theFirstProjectId });
       this.setState({ kanbanId: theFirstKanbanId });
       this.setState({ kanban });
+      this.setState({ kanbans });
       this.setState({ project });
       this.setState({ user });
     }
@@ -291,7 +294,7 @@ class App extends Component {
   /**the new kanban create button(submit) handler*/
   handleKanbanSubmit = () => {
     let kanbanService = new KanbanService();
-    const projectId = window.location.pathname.split("/").pop();
+    const projectId = this.state.projectId;
     let newKanbanFormData = { ...this.state.newKanbanFormData };
     newKanbanFormData.projectId = projectId;
     this.setState({ newKanbanFormData });
@@ -397,8 +400,26 @@ class App extends Component {
     this.setState({ sideProjectList: true });
   };
 
-  changeProjectId = projectId => {
+  changeProjectId = async projectId => {
+    let theFirstKanbanId;
+    let kanban = {};
+    const user = { ...this.state.user };
     this.setState({ projectId });
+    if (user) {
+      const projects = user.projects.slice(0);
+      const project = projects.find(p => p.id === projectId);
+      const kanbans = (await new KanbanService().getKanbansOfProject(projectId))
+        .data;
+      if (kanbans && kanbans.length > 0) {
+        kanban = kanbans[0];
+        theFirstKanbanId = kanbans[0]._id;
+      }
+
+      this.setState({ kanbanId: theFirstKanbanId });
+      this.setState({ kanban });
+      this.setState({ kanbans });
+      this.setState({ project });
+    }
   };
 
   //---------------------------------------------------------------------------
@@ -425,7 +446,9 @@ class App extends Component {
   //----------------------------------------------------------------------------
 
   render() {
-    const { user, kanbanId, sideProjectList, projectId } = { ...this.state };
+    const { user, kanbanId, sideProjectList, projectId, kanbans } = {
+      ...this.state
+    };
     return (
       <React.Fragment>
         <Navbar user={user} />
@@ -441,7 +464,7 @@ class App extends Component {
           // option={{ suppressScrollY: true, useBothWheelAxes: true }}
         >
           {/* <div className="section is-paddingless m-t-8 min-height-500 "> */}
-          <div className="container columns is-gapless">
+          <div className="container columns is-gapless is-fluid is-marginless  ">
             {sideProjectList && (
               <div className="column is-2">
                 <ProjectList
@@ -467,7 +490,8 @@ class App extends Component {
                     <Overview
                       {...props}
                       user={user}
-                      openNewProjectModal={this.openNewProjectModal}
+                      kanbans={kanbans}
+                      projectId={projectId}
                     />
                   )}
                 />
