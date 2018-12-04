@@ -140,7 +140,7 @@ class App extends Component {
   handleSubmit = () => {
     let projectService = new ProjectService();
     projectService.createNewProject(this.state.newProjectFormData);
-    window.location = "/";
+    // window.location = "/";
   };
 
   /**the repositories select in the new project modal handler */
@@ -300,7 +300,7 @@ class App extends Component {
     this.setState({ newKanbanFormData });
     kanbanService.createNewKanban(newKanbanFormData);
     this.closeNewKanbanModal();
-    window.location.reload(); // refresh the page
+    // window.location.reload(); // refresh the page
   };
 
   /**the new kanban cancel button handler */
