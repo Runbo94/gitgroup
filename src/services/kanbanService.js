@@ -1,12 +1,11 @@
 import http from "./httpService";
-import { backendApi } from "../config.json";
 
 export class KanbanService {
   kanbanHttp;
 
   constructor() {
     this.kanbanHttp = http.create({
-      baseURL: backendApi + "/kanban",
+      baseURL: process.env.REACT_APP_API_URL + "/kanban",
       headers: {
         Authorization: localStorage.getItem("access_token")
       }

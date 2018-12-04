@@ -1,12 +1,11 @@
 import http from "./httpService";
-import { backendApi } from "../config.json";
 
 export class IssueService {
   issueHttp;
 
   constructor() {
     this.issueHttp = http.create({
-      baseURL: backendApi + "/issues",
+      baseURL: process.env.REACT_APP_API_URL + "/issues",
       headers: {
         Authorization: localStorage.getItem("access_token")
       }

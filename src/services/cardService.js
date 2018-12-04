@@ -5,7 +5,7 @@ export class CardService {
   cardHttp;
   constructor() {
     this.cardHttp = http.create({
-      baseURL: backendApi + "/cards",
+      baseURL: process.env.REACT_APP_API_URL + "/cards",
       headers: {
         Authorization: localStorage.getItem("access_token")
       }

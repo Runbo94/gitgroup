@@ -9,7 +9,7 @@ export class UserService {
 
   constructor() {
     this.userHttp = http.create({
-      baseURL: backendApi,
+      baseURL: process.env.REACT_APP_API_URL,
       headers: {
         Authorization: localStorage.getItem("access_token")
       }

@@ -1,5 +1,4 @@
 import http from "./httpService";
-import config from "../config.json";
 
 export function login(email, password) {
   // return http.post(api, {
@@ -12,9 +11,8 @@ export class Auth {
   authApi;
 
   constructor() {
-    const url = config.backendApi;
     this.authApi = http.create({
-      baseURL: url
+      baseURL: process.env.REACT_APP_API_URL
     });
   }
 

@@ -1,13 +1,11 @@
 import http from "./httpService";
-import { backendApi } from "../config.json";
-import { Project } from "../models/projectModel";
 
 export class ProjectService {
   projectHttp;
 
   constructor() {
     this.projectHttp = http.create({
-      baseURL: backendApi + "/project",
+      baseURL: process.env.REACT_APP_API_URL + "/project",
       headers: {
         Authorization: localStorage.getItem("access_token")
       }
