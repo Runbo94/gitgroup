@@ -300,7 +300,7 @@ class App extends Component {
     this.setState({ newKanbanFormData });
     kanbanService.createNewKanban(newKanbanFormData);
     this.closeNewKanbanModal();
-    window.location = window.location; // refresh the page
+    window.location.reload(); // refresh the page
   };
 
   /**the new kanban cancel button handler */
